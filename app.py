@@ -5,6 +5,7 @@ from flask_login import UserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
+from flask_bcrypt import Bcrypt
 
 
 app = Flask(__name__)
@@ -12,6 +13,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['SECRET_KEY'] = 'thisisasecretkey'
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 
 
 class User(db.Model, UserMixin):
@@ -34,6 +36,15 @@ class RegisterForm(FlaskForm):
     submit = SubmitField("Register")
 
 
+class LoginForm(FlaskForm):
+    username = StringField(validators=[InputRequired(), Length(
+        min=4, max=20)], render_kw={"placeholder": "Username"})
+
+    password = PasswordField(validators=[InputRequired(), Length(
+        min=4, max=20)], render_kw={"placeholder":"Password"})
+
+    submit = SubmitField("Login")
+
     def validate_username(self, username):
         existing_user_username = User.query.filter_by(
            username=username.data).first()
@@ -49,13 +60,15 @@ def home():
     return render_template('home.html')
 
 
-@app.route ('/login')
+@app.route ('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+    form = LoginForm()
+    return render_template('login.html', form=form)
 
-@app.route ('/register')
+@app.route ('/register', methods=['GET', 'POST'])
 def register():
-    return render_template('register.html')
+    form = RegisterForm()
+    return render_template('register.html', form=form)
 
 
 if __name__ =='__main__':
