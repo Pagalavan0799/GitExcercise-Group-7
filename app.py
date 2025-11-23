@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask_wtf import FlaskForm
@@ -35,6 +35,14 @@ class RegisterForm(FlaskForm):
 
     submit = SubmitField("Register")
 
+    def validate_username(self, username):
+        existing_user_username = User.query.filter_by(
+           username=username.data).first()
+        
+        if existing_user_username:
+            raise ValidationError(
+                "That username already exist, please choose a different one.")
+
 
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(
@@ -44,15 +52,6 @@ class LoginForm(FlaskForm):
         min=4, max=20)], render_kw={"placeholder":"Password"})
 
     submit = SubmitField("Login")
-
-    def validate_username(self, username):
-        existing_user_username = User.query.filter_by(
-           username=username.data).first()
-        
-        if existing_user_username:
-            raise ValidationError(
-                "That username already exist, please choose a different one.")
-        
 
 
 @app.route('/')
@@ -68,6 +67,14 @@ def login():
 @app.route ('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
+
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        new_user = User(username=form.username.data, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+
     return render_template('register.html', form=form)
 
 
