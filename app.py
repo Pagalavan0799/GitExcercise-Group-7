@@ -161,7 +161,7 @@ def upload_bill():
         new_bill = RentBill(
             description=filename,
             released=True,
-            doc_type='Pdf'
+            doc_type='Pdf',
             created_on=current_date,
             filename=filename
         )
