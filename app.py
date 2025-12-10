@@ -109,9 +109,67 @@ if __name__ =='__main__':
 
 #lavan's code
 
-from flask import Flask, render_template, request, redirect, session, url_for
-from flask_sqlalchemy import SQLAlchemy
+import os
 from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import secure_filename
 
+app = Flask(__name__)
 
+UPLOAD_FOLDER = 'statis/bills'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rent_logs.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+class RentBill(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(200), nullable=False)
+    released = db.Column(db.Boolean, default=True)
+    doc_type = db.Column(db.String(20), default='Pdf')
+    created_on = db.Column(db.String(20), nullable=False)
+    filename = db.Column(db.String(200), nullable=False)
+
+with app.app_context():
+    db.create_all()
+
+@app.route('/')
+def rent_logs():
+    all_bills = RentBill.query.order_by(RentBill.id.desc()).all()
+    return render_template('rent_table.html', bills=all_bills)
+
+@app.route('/upload', methods=['POST'])
+def upload_bill():
+    if 'file' not in request.files:
+        return redirect(url_for('rent_logs'))
+    
+    file = request.files['file']
+
+    if file.filename == '':
+        return redirect(url_for('rent_logs'))
+    
+    if file:
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        current_date = datetime.now().strftime("%d/%m/%Y")
+
+        new_bill = RentBill(
+            description=filename,
+            released=True,
+            doc_type='Pdf'
+            created_on=current_date,
+            filename=filename
+        )
+
+    db.session.add(new_bill)
+    db.session.commit()
+    
+    return redirect(url_for('rent_logs'))
+
+if __name__ == '__main__':
+    app.run(debug=True)

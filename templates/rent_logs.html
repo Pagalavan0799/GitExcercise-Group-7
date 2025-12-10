@@ -3,45 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <title>Rent Logs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
-        body { font-family: sans-serif; padding: 30px; }
-        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; background: #f4f4f4; padding: 10px; border-bottom: 2px solid #ddd; }
-        td { padding: 10px; border-bottom: 1px solid #eee; }
-        
-        .back-btn { display: inline-block; margin-top: 20px; text-decoration: none; color: #333; font-weight: bold; }
+        body { padding: 20px; background-color: #f4f6f9; }
+        .table-container { background: white; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .doc-link { color: #0056b3; text-decoration: none; font-weight: 500; }
+        .view-btn { color: #dc3545; text-decoration: none; }
+        .view_text { color: #6c757d; margin-left: 5px; }
+        .upload-box { background: #e9ecef; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px dashed #6c757d; }
     </style>
 </head>
 <body>
 
-    <h1>{{ current_user.username }}'s Rent Logs</h1>
+<div class="container mt-4">
 
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Item / Description</th>
-                <th>Amount (RM)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for bill in bills %}
-            <tr>
-                <td>{{ bill.date_created.strftime('%Y-%m-%d') }}</td>
-                <td>{{ bill.item_name }}</td>
-                <td>{{ "%.2f"|format(bill.amount) }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="3" style="text-align:center; color:gray;">No transaction history found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="upload-box">
+        <h5><i class="fa-solid fa-cloud-arrow-up"></i> Admin Upload New Bill</h5>
+        <form action="/upload" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+            <input class="form-control" type="file" name="file" accept=".pdf" required>
+            <button class="btn btn-primary" type="submit">Upload & Add to Log</button>
+        </form>
+    </div>
 
-    <a href="{{ url_for('dashboard') }}" class="back-btn">← Back to Dashboard</a>
+    <h3>Rent Bill History</h3>
+    <div class="table-container">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th><input type="checkbox"></th>
+                    <th>Row#</th>
+                    <th>Description</th>
+                    <th>Released</th>
+                    <th>Doc Type</th>
+                    <th>Created On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for all bill in bills %}
+                <tr>
+                    <td><input type="checkbox"></td>
+                    <td>{{ bill.id }}</td>
+                    <td>
+                        <a href="{{ url_for('static', filename='bills/' + bill.filename) }}" class="doc-link" target="_blank">
+                            {{ bill.description }}
+                        </a>
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" {% if bill.released %}checke{% endif %} disabled>
+                    </td>
+                    <td class="text-primary">{{ bill.doc_type }}</td>
+                    <td>{{ bill.created_on }}</td>
+                    <td>
+                        <a href="{{ url_for('static', filename='bills/' + bill.filename) }}" class="doc-link" target="_blank">
+                            <i class="fa-regular fa-file-pdf"></i>
+                            <span class="view_text">View</span>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No rent bills found. Upload one above!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 </body>
 </html>
