@@ -137,10 +137,10 @@ class RentBill(db.Model):
 with app.app_context():
     db.create_all()
 
-@app.route('/')
+@app.route('/logs')
 def rent_logs():
     all_bills = RentBill.query.order_by(RentBill.id.desc()).all()
-    return render_template('rent_table.html', bills=all_bills)
+    return render_template('rent_logs.html', bills=all_bills)
 
 @app.route('/upload', methods=['POST'])
 def upload_bill():
