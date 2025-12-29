@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="static/loginstyle.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='loginstyle.css') }}">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
@@ -23,15 +23,16 @@
                     {{ form.password }}
                     <i class='bx bxs-lock-alt'></i>
                 </div>
-
+                <div class="btn">
                 {{ form.submit }}
-            
+                </div>
         </form>
-
+    <div class="register-link">
         <div class="links">
             <a href="{{url_for('register')}}">Don't have an account? Sign Up here!</a><br>
             <a href="{{url_for('home')}}">Click here to return home!</a>
         </div>
+    </div>
     </div>
     
 </body>
