@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Utility Bill Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+            background-color: #ce9102;
+        }
+        .main-container {
+            background: rgb(234, 73, 175);
+            padding: 30px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            width: 700px;
+        }
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+        .calc-box {
+            flex: 1;
+            border: 2px solid #000;
+            padding: 20px;
+            text-align: center;
+        }
+        h3 { margin-top: 0; text-transform: uppercase; }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        /* Bottom Total Box */
+        .total-box {
+            border: 2px solid #000;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+        }
+        .total-box h2 {
+            margin: 0;
+            font-size: 2em;
+            color: #2c3e50;
+        }
+        .enter-btn {
+            background-color: #333;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            cursor: pointer;
+            float: right;
+            margin-top: 10px;
+        }
+        .enter-btn:hover { background-color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <form method="POST">
+            <div class="calc-row">
+                <div class="calc-box">
+                    <h3>Electric Calc</h3>
+                    <input type="number" name="e_usage" step="0.01" placeholder="Ect 200" value="{{ e_usage if e_usage > 0 else '' }}">
+                    <p style="font-size: 0.8em;">Rate: RM 1.00/kWh</p>
+                </div>
+
+                <div class="calc-box">
+                    <h3>Water Calc</h3>
+                    <input type="number" name="w_usage" step="0.01" placeholder="Ect 50" value="{{ w_usage if w_usage > 0 else '' }}">
+                    <p style="font-size: 0.8em;">Rate: RM 2.00/m³</p>
+                </div>
+            </div>
+
+            <div style="overflow: auto;">
+                <button type="submit" class="enter-btn">ENTER</button>
+            </div>
+
+            <div class="total-box">
+                <p>TOTAL PRICE</p>
+                <h2>RM {{ "%.2f"|format(total_price) }}</h2>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

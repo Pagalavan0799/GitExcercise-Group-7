@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select a Floor Plan</title>
+    <style>
+        body{
+            background-color: #6a0dad;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .image-button {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            background: none;
+            padding: 10px;
+        }
+        .image-button:hover {
+            transform: scale(1.02);
+            border-color: #007bff;
+        }
+        .image-button img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        h2 { text-align: center; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <h2>Please select a layout to continue</h2>
+    
+   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    {% for room in rooms %}
+    <a href="{{ room.url }}">
+        <img src="{{ url_for('static', filename=room.img) }}" style="width:100%;">
+        <p>{{ room.img }}</p>
+    </a>
+    {% endfor %}
+</div>
+</body>
+</html>
