@@ -17,13 +17,22 @@
         {{ form.hidden_tag() }}
 
             <div class="input-box">
-            {{ form.username }}
-        {{ form.password }}
-        {{ form.submit }}
+                {{ form.username }}
+                <i class='bx bx-user'></i>
+            </div> <div class="input-box">
+                {{ form.password }}
+                <i class="bx bxs-lock-alt"></i>
+            </div>
+            <div class="btn">
+            {{ form.submit }}
+            </div>
     </form>
-    
-    <a href="{{url_for('login')}}">Already have an account? Log In Here!</a><br>
-    <a href="{{url_for('home')}}">Click here to return home!</a>
-    
+    <div class="register-link">
+        <div class="links">
+            <a href="{{url_for('login')}}">Already have an account? Log In Here!</a><br>
+            <a href="{{url_for('home')}}">Click here to return home!</a>
+        </div>
+        </div>
+
 </body>
 </html>
