@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='loginstyle.css') }}">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
-    <h1>Register Page</h1>
+    
+    <div class="login-container">
+        <div class="wrapper">
+            <h1>Register Page</h1>
 
     <form method="POST" action="">
         {{ form.hidden_tag() }}
-        {{ form.username }}
+
+            <div class="input-box">
+            {{ form.username }}
         {{ form.password }}
         {{ form.submit }}
     </form>
