@@ -173,3 +173,29 @@ def upload_bill():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+#Sujiva's code
+import os
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+APPS = {
+    "plan1": "http://127.0.0.1:5001", 
+    "plan2": "http://127.0.0.1:5002", 
+    "plan3": "http://127.0.0.1:5003", 
+    "plan4": "http://127.0.0.1:5004"  
+}
+
+@app.route('/')
+def index():
+    room_configs = [
+        {"img": "room1.jpg", "url": APPS["plan1"]},
+        {"img": "room2.jpg", "url": APPS["plan2"]},
+        {"img": "room3.jpg", "url": APPS["plan3"]},
+        {"img": "room4.jpg", "url": APPS["plan4"]}
+    ]
+    return render_template('selection.html', rooms=room_configs)
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
