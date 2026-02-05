@@ -171,6 +171,14 @@
     {% endif %}
 
 </div>
-
+{% if mode is not defined %}
+<div class="container mt-5 text-center">
+    <div class="alert alert-danger">
+        <h3>Error: App not updated</h3>
+        <p>The dashboard.html is updated, but app.py is not sending the 'mode' variable.</p>
+        <p>Please make sure you saved app.py and restarted your server.</p>
+    </div>
+</div>
+{% endif %}
 </body>
 </html>
