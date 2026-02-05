@@ -15,7 +15,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['SECRET_KEY'] = 'thisisasecretkey'
-app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static/bills') # Fix path to be absolute or relative correctly
+app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static/bills')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
@@ -25,25 +25,67 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-# --- ROOM DATA CONFIGURATION ---
+# --- HOUSE & ROOM DATA ---
+# This structure now includes 'sub_rooms' for the specific selection step.
 ROOM_DATA = {
-    "room1": {"id": "room1", "name": "Room 1", "img": "room1.jpg", "e_rate": 0.50, "w_rate": 1.00, "desc": "Standard single room layout."},
-    "room2": {"id": "room2", "name": "Room 2", "img": "room2.jpg", "e_rate": 0.33, "w_rate": 0.66, "desc": "Compact room with efficient rates."},
-    "room3": {"id": "room3", "name": "Room 3", "img": "room3.jpg", "e_rate": 0.76, "w_rate": 1.33, "desc": "Spacious room with premium amenities."},
-    "room4": {"id": "room4", "name": "Room 4", "img": "room4.jpg", "e_rate": 1.00, "w_rate": 2.00, "desc": "Deluxe master suite layout."}
+    "room1": {
+        "id": "room1", 
+        "name": "House Layout 1", 
+        "img": "room1.jpg", 
+        "e_rate": 0.50, "w_rate": 1.00, 
+        "desc": "2 rooms divided equally.",
+        "sub_rooms": [
+            {"id": "r1_a", "name": "Room A (Standard)"},
+            {"id": "r1_b", "name": "Room B (Standard)"}
+        ]
+    },
+    "room2": {
+        "id": "room2", 
+        "name": "House Layout 2", 
+        "img": "room2.jpg", 
+        "e_rate": 0.33, "w_rate": 0.66, 
+        "desc": "3 rooms divided equally.",
+        "sub_rooms": [
+            {"id": "r2_a", "name": "Room A"},
+            {"id": "r2_b", "name": "Room B"},
+            {"id": "r2_c", "name": "Room C"}
+        ]
+    },
+    "room3": {
+        "id": "room3", 
+        "name": "House Layout 3", 
+        "img": "room3.jpg", 
+        "e_rate": 0.76, "w_rate": 1.33, 
+        "desc": "A single large room.",
+        "sub_rooms": [
+            {"id": "r3_a", "name": "Master Suite"}
+        ]
+    },
+    "room4": {
+        "id": "room4", 
+        "name": "House Layout 4", 
+        "img": "room4.jpg", 
+        "e_rate": 1.00, "w_rate": 2.00, 
+        "desc": "2 rooms with one being larger and the other being smaller.",
+        "sub_rooms": [
+            {"id": "r4_large", "name": "Master Bedroom (Large)"},
+            {"id": "r4_small", "name": "Compact Room (Small)"}
+        ]
+    }
 }
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- UPDATED DATABASE MODELS ---
+# --- UPDATED USER MODEL ---
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
-    # New column to store the user's room choice
-    selected_room = db.Column(db.String(20), nullable=True)
+    # Changed to track Layout ID + Specific Sub-Room ID
+    selected_layout_id = db.Column(db.String(20), nullable=True)
+    selected_sub_room_id = db.Column(db.String(20), nullable=True)
 
 class RentBill(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -63,16 +105,15 @@ class RegisterForm(FlaskForm):
     submit = SubmitField("Register")
 
     def validate_username(self, username):
-        existing_user_username = User.query.filter_by(username=username.data).first()
-        if existing_user_username:
-            raise ValidationError("That username already exist, please choose a different one.")
+        existing = User.query.filter_by(username=username.data).first()
+        if existing: raise ValidationError("That username already exists.")
 
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder":"Password"})
     submit = SubmitField("Login")
 
-# --- ROUTES ---
+# --- CORE ROUTES ---
 
 @app.route('/')
 def home():
@@ -105,68 +146,90 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
-# --- DASHBOARD & LOGIC ROUTES ---
+# --- DASHBOARD & SELECTION LOGIC ---
 
-@app.route('/select_room/<room_id>', methods=['POST'])
-@login_required
-def select_room_action(room_id):
-    """Route to handle the room selection submission."""
-    if room_id in ROOM_DATA:
-        current_user.selected_room = room_id
-        db.session.commit()
-    return redirect(url_for('dashboard'))
-
-@app.route('/dashboard', methods=['GET', 'POST'])
+@app.route('/dashboard')
 @login_required
 def dashboard():
-    # MODE 1: Room Selection
-    # If the user has NOT selected a room yet, show the selection view
-    if not current_user.selected_room:
-        return render_template('dashboard.html', mode='selection', rooms=ROOM_DATA)
+    # If no layout selected, start the wizard
+    if not current_user.selected_layout_id:
+        return redirect(url_for('select_layout'))
+    
+    # If layout selected, show Dashboard
+    layout = ROOM_DATA.get(current_user.selected_layout_id)
+    
+    # Get the fancy name for the sub-room
+    sub_room_name = "Unknown Room"
+    if layout and current_user.selected_sub_room_id:
+        for r in layout['sub_rooms']:
+            if r['id'] == current_user.selected_sub_room_id:
+                sub_room_name = r['name']
+                break
 
-    # MODE 2: Normal Dashboard (Calculator + Logs)
-    # If the user HAS selected a room, show the dashboard
-    
-    room_info = ROOM_DATA.get(current_user.selected_room)
-    
-    # Calculator Logic
-    e_usage = 0.0
-    w_usage = 0.0
-    total_price = 0.0
-    
-    if request.method == 'POST' and 'e_usage' in request.form:
-        try:
-            e_usage = float(request.form.get('e_usage', 0) or 0)
-            w_usage = float(request.form.get('w_usage', 0) or 0)
-            total_price = (e_usage * room_info['e_rate']) + (w_usage * room_info['w_rate'])
-        except ValueError:
-            pass
-
-    # Fetch Rent Logs
     all_bills = RentBill.query.order_by(RentBill.id.desc()).all()
     
     return render_template('dashboard.html', 
                            mode='dashboard',
                            bills=all_bills, 
-                           room=room_info,
-                           e_usage=e_usage, 
-                           w_usage=w_usage, 
-                           total_price=total_price)
+                           layout=layout,
+                           sub_room_name=sub_room_name)
+
+# --- WIZARD STEPS ---
+
+@app.route('/select/layout')
+@login_required
+def select_layout():
+    if current_user.selected_layout_id: return redirect(url_for('dashboard'))
+    return render_template('dashboard.html', mode='step_1_layout', rooms=ROOM_DATA)
+
+@app.route('/select/layout/<layout_id>')
+@login_required
+def select_sub_room(layout_id):
+    if current_user.selected_layout_id: return redirect(url_for('dashboard'))
+    
+    layout = ROOM_DATA.get(layout_id)
+    if not layout: return redirect(url_for('select_layout'))
+    
+    return render_template('dashboard.html', mode='step_2_subroom', layout=layout)
+
+@app.route('/select/confirm/<layout_id>/<sub_room_id>')
+@login_required
+def confirm_selection(layout_id, sub_room_id):
+    if current_user.selected_layout_id: return redirect(url_for('dashboard'))
+    
+    layout = ROOM_DATA.get(layout_id)
+    # Find the specific room data
+    target_room = next((r for r in layout['sub_rooms'] if r['id'] == sub_room_id), None)
+    
+    if not layout or not target_room: return redirect(url_for('select_layout'))
+
+    return render_template('dashboard.html', mode='step_3_confirm', layout=layout, sub_room=target_room)
+
+@app.route('/select/finalize/<layout_id>/<sub_room_id>', methods=['POST'])
+@login_required
+def finalize_selection(layout_id, sub_room_id):
+    # This is the ONLY place we save to DB
+    if current_user.selected_layout_id: return redirect(url_for('dashboard'))
+    
+    if layout_id in ROOM_DATA:
+        current_user.selected_layout_id = layout_id
+        current_user.selected_sub_room_id = sub_room_id
+        db.session.commit()
+        
+    return redirect(url_for('dashboard'))
+
+# --- UPLOAD ---
 
 @app.route('/upload', methods=['POST'])
 @login_required
 def upload_bill():
-    if 'file' not in request.files:
-        return redirect(url_for('dashboard'))
-    
+    if 'file' not in request.files: return redirect(url_for('dashboard'))
     file = request.files['file']
-    if file.filename == '':
-        return redirect(url_for('dashboard'))
+    if file.filename == '': return redirect(url_for('dashboard'))
     
     if file:
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
         current_date = datetime.now().strftime("%d/%m/%Y")
         new_bill = RentBill(
             description=filename, released=True, doc_type='Pdf',
