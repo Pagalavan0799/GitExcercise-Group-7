@@ -34,8 +34,8 @@ ROOM_DATA = {
         "e_rate": 0.50, "w_rate": 1.00, 
         "desc": "2 rooms divided equally.",
         "sub_rooms": [
-            {"id": "r1_a", "name": "Room A (Standard)", "rent": 600},
-            {"id": "r1_b", "name": "Room B (Standard)", "rent": 600}
+            {"id": "r1_a", "name": "Room A (Standard)", "rent": 450},
+            {"id": "r1_b", "name": "Room B (Standard)", "rent": 450}
         ]
     },
     "room2": {
@@ -45,9 +45,9 @@ ROOM_DATA = {
         "e_rate": 0.33, "w_rate": 0.66, 
         "desc": "3 rooms divided equally.",
         "sub_rooms": [
-            {"id": "r2_a", "name": "Room A", "rent": 450},
-            {"id": "r2_b", "name": "Room B", "rent": 450},
-            {"id": "r2_c", "name": "Room C", "rent": 450}
+            {"id": "r2_a", "name": "Room A", "rent": 320},
+            {"id": "r2_b", "name": "Room B", "rent": 320},
+            {"id": "r2_c", "name": "Room C", "rent": 320}
         ]
     },
     "room3": {
@@ -57,7 +57,7 @@ ROOM_DATA = {
         "e_rate": 0.76, "w_rate": 1.33, 
         "desc": "A single large room.",
         "sub_rooms": [
-            {"id": "r3_a", "name": "Master Suite", "rent": 1000}
+            {"id": "r3_a", "name": "Master Suite", "rent": 720}
         ]
     },
     "room4": {
@@ -67,8 +67,8 @@ ROOM_DATA = {
         "e_rate": 1.00, "w_rate": 2.00, 
         "desc": "2 rooms with one being larger and the other being smaller.",
         "sub_rooms": [
-            {"id": "r4_large", "name": "Master Bedroom (Large)", "rent": 750},
-            {"id": "r4_small", "name": "Compact Room (Small)", "rent": 400}
+            {"id": "r4_large", "name": "Master Bedroom (Large)", "rent": 510},
+            {"id": "r4_small", "name": "Compact Room (Small)", "rent": 320}
         ]
     }
 }
@@ -152,10 +152,12 @@ def dashboard():
     layout = ROOM_DATA.get(current_user.selected_layout_id)
     
     sub_room_name = "Unknown Room"
+    sub_room_rent = 0
     if layout and current_user.selected_sub_room_id:
         for r in layout['sub_rooms']:
             if r['id'] == current_user.selected_sub_room_id:
                 sub_room_name = r['name']
+                sub_room_rent = r.get('rent', 0)
                 break
 
     all_bills = RentBill.query.order_by(RentBill.id.desc()).all()
@@ -164,7 +166,8 @@ def dashboard():
                            mode='dashboard',
                            bills=all_bills, 
                            layout=layout,
-                           sub_room_name=sub_room_name)
+                           sub_room_name=sub_room_name,
+                            sub_room_rent=sub_room_rent)
 
 
 @app.route('/select/layout')
