@@ -12,7 +12,7 @@ from datetime import datetime
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Configuration
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['SECRET_KEY'] = 'thisisasecretkey'
 app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static/bills')
@@ -25,8 +25,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-# --- HOUSE & ROOM DATA ---
-# This structure now includes 'sub_rooms' for the specific selection step.
+
 ROOM_DATA = {
     "room1": {
         "id": "room1", 
@@ -78,12 +77,11 @@ ROOM_DATA = {
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- UPDATED USER MODEL ---
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
-    # Changed to track Layout ID + Specific Sub-Room ID
     selected_layout_id = db.Column(db.String(20), nullable=True)
     selected_sub_room_id = db.Column(db.String(20), nullable=True)
 
@@ -98,7 +96,6 @@ class RentBill(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- FORMS ---
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder":"Password"})
@@ -113,7 +110,6 @@ class LoginForm(FlaskForm):
     password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder":"Password"})
     submit = SubmitField("Login")
 
-# --- CORE ROUTES ---
 
 @app.route('/')
 def home():
@@ -146,19 +142,15 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
-# --- DASHBOARD & SELECTION LOGIC ---
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # If no layout selected, start the wizard
     if not current_user.selected_layout_id:
         return redirect(url_for('select_layout'))
     
-    # If layout selected, show Dashboard
     layout = ROOM_DATA.get(current_user.selected_layout_id)
     
-    # Get the fancy name for the sub-room
     sub_room_name = "Unknown Room"
     if layout and current_user.selected_sub_room_id:
         for r in layout['sub_rooms']:
@@ -174,7 +166,6 @@ def dashboard():
                            layout=layout,
                            sub_room_name=sub_room_name)
 
-# --- WIZARD STEPS ---
 
 @app.route('/select/layout')
 @login_required
@@ -198,7 +189,6 @@ def confirm_selection(layout_id, sub_room_id):
     if current_user.selected_layout_id: return redirect(url_for('dashboard'))
     
     layout = ROOM_DATA.get(layout_id)
-    # Find the specific room data
     target_room = next((r for r in layout['sub_rooms'] if r['id'] == sub_room_id), None)
     
     if not layout or not target_room: return redirect(url_for('select_layout'))
@@ -208,7 +198,6 @@ def confirm_selection(layout_id, sub_room_id):
 @app.route('/select/finalize/<layout_id>/<sub_room_id>', methods=['POST'])
 @login_required
 def finalize_selection(layout_id, sub_room_id):
-    # This is the ONLY place we save to DB
     if current_user.selected_layout_id: return redirect(url_for('dashboard'))
     
     if layout_id in ROOM_DATA:
@@ -218,7 +207,6 @@ def finalize_selection(layout_id, sub_room_id):
         
     return redirect(url_for('dashboard'))
 
-# --- UPLOAD ---
 
 @app.route('/upload', methods=['POST'])
 @login_required
