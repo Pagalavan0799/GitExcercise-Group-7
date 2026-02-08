@@ -34,8 +34,8 @@ ROOM_DATA = {
         "e_rate": 0.50, "w_rate": 1.00, 
         "desc": "2 rooms divided equally.",
         "sub_rooms": [
-            {"id": "r1_a", "name": "Room A (Standard)"},
-            {"id": "r1_b", "name": "Room B (Standard)"}
+            {"id": "r1_a", "name": "Room A (Standard)", "rent": 600},
+            {"id": "r1_b", "name": "Room B (Standard)", "rent": 600}
         ]
     },
     "room2": {
@@ -45,9 +45,9 @@ ROOM_DATA = {
         "e_rate": 0.33, "w_rate": 0.66, 
         "desc": "3 rooms divided equally.",
         "sub_rooms": [
-            {"id": "r2_a", "name": "Room A"},
-            {"id": "r2_b", "name": "Room B"},
-            {"id": "r2_c", "name": "Room C"}
+            {"id": "r2_a", "name": "Room A", "rent": 450},
+            {"id": "r2_b", "name": "Room B", "rent": 450},
+            {"id": "r2_c", "name": "Room C", "rent": 450}
         ]
     },
     "room3": {
@@ -57,7 +57,7 @@ ROOM_DATA = {
         "e_rate": 0.76, "w_rate": 1.33, 
         "desc": "A single large room.",
         "sub_rooms": [
-            {"id": "r3_a", "name": "Master Suite"}
+            {"id": "r3_a", "name": "Master Suite", "rent": 1000}
         ]
     },
     "room4": {
@@ -67,8 +67,8 @@ ROOM_DATA = {
         "e_rate": 1.00, "w_rate": 2.00, 
         "desc": "2 rooms with one being larger and the other being smaller.",
         "sub_rooms": [
-            {"id": "r4_large", "name": "Master Bedroom (Large)"},
-            {"id": "r4_small", "name": "Compact Room (Small)"}
+            {"id": "r4_large", "name": "Master Bedroom (Large)", "rent": 750},
+            {"id": "r4_small", "name": "Compact Room (Small)", "rent": 400}
         ]
     }
 }

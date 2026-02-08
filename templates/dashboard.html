@@ -19,7 +19,7 @@
         .room-badge { background-color: #6a0dad; color: white; padding: 5px 10px; border-radius: 15px; font-size: 0.9em; }
         .doc-link { color: #0056b3; text-decoration: none; font-weight: 500; }
         
-        /* Step Wizard Styles */
+        
         .step-title { text-align: center; margin-bottom: 30px; }
     </style>
 </head>
@@ -67,7 +67,11 @@
                 <div class="list-group">
                     {% for sub in layout.sub_rooms %}
                     <a href="{{ url_for('confirm_selection', layout_id=layout.id, sub_room_id=sub.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
-                        <span class="h5 mb-0">{{ sub.name }}</span>
+                        <div>
+                            <span class="h5 mb-0">{{ sub.name }}</span>
+                            <br>
+                            <small class="text-muted">RM {{ sub.rent }}</small>
+                        </div>
                         <i class="fa-solid fa-chevron-right text-muted"></i>
                     </a>
                     {% endfor %}
